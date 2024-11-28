@@ -1,0 +1,21 @@
+#include<lpc214x.h>
+void delay(unsigned int ms){
+T0PR=15000;
+T0TC=0;
+T0TCR=0x01;
+while(T0TC<ms);
+T0TCR=0x00;
+}
+void main()
+{
+PINSEL2 = 0x00000000;
+IO1DIR = 0xFFFFFFFF;
+while(1){
+
+IOSET1 = 0xFF000000;
+delay(1000);
+IOCLR1 = 0xFF000000;
+delay(1000);
+}
+return 0;
+}
