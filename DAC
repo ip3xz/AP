@@ -1,0 +1,111 @@
+1)Triangular:
+#include<lpc214x.h>
+#define shift 6
+#define mask 0x0000FFC0 //putting 1 for 5-16 bits only
+void dac_init()
+{
+PINSEL1 |=1<<19; //pin 19 only of pinsel1
+DACR=1<<16; //BIAS
+}
+int main()
+{
+unsigned int i;
+dac_init();
+while(1)
+{
+for(i=0;i<1024;i++)
+{
+DACR=(i<<shift)& mask;
+}
+for(i=1023;i>0;i--)
+{
+DACR=(i<<shift)& mask;
+}
+}
+return 0;
+}
+-------------------------------------------------------------------
+2) Sawtooth:
+#include<lpc214x.h>
+#define shift 6
+#define mask 0x0000FFC0 //putting 1 for 5-16 bits only
+void dac_init()
+{
+PINSEL1 |=1<<19; //pin 19 only of pinsel1
+DACR=1<<16; //BIAS
+}
+
+int main()
+{
+unsigned int i;
+dac_init();
+while(1)
+{
+for(i=0;i<1024;i++)
+{
+DACR=(i<<shift)& mask;
+}
+}
+return 0;
+}
+--------------------------------------------
+3) SQUARE:
+#include<lpc214x.h>
+#define shift 6
+#define mask 0x0000FFC0 //putting 1 for 5-16 bits only
+void delay(unsigned int time)
+{
+unsigned int i,j;
+for(i=0;i<256;i++)
+for(j=0;j<time;j++);
+}
+void dac_init()
+{
+PINSEL1 |=1<<19; //pin 19 only of pinsel1
+DACR=1<<16; //BIAS
+}
+int main()
+{
+unsigned int i;
+dac_init();
+while(1)
+{
+DACR=0x00000000;
+delay(1000);
+DACR=0x0000FFC0;
+delay(1000);
+}
+}
+----------------------------------------
+4) STEP:
+#include<lpc214x.h>
+#define shift 6
+#define mask 0x0000FFC0
+void delay(unsigned int time)
+{
+for(int i=0;i<time;i++)
+for(int j=0;j<10000;j++);
+}
+void dac_init()
+{
+PINSEL1 |= 1<<19;
+DACR = 1<<16;
+}
+int main()
+{
+unsigned int i;
+
+dac_init();
+while(1){
+for(i=0;i<1024;i=i+341)
+{
+DACR=((i<<shift)& mask);
+delay(100);
+}
+for(i=1023;i>0;i=i-341)
+{
+DACR=((i<<shift)& mask);
+delay(100);
+}
+}
+}
