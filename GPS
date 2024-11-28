@@ -1,0 +1,142 @@
+1) UART0:
+#include<lpc214x.h>
+void UART0Init()
+{
+PINSEL0 |= 0x00000005;
+U0FCR=0x07;
+U0LCR= 0X83;
+U0DLL=0X62;
+U0DLM=0X00;
+U0LCR=0x03;
+}
+unsigned char UART0_PutChar(unsigned char ch)
+{
+if(ch =='\n')
+{
+while(!(U0LSR&0x20));
+U0THR = 0x0D;
+}
+while(!(U0LSR&0x20));
+return(U0THR = ch);
+}
+unsigned char UART0_GetChar(void)
+{
+while(!(U0LSR&0x01));
+return(U0RBR);
+}
+void UART0_Puts(unsigned char *str)
+{
+while(1)
+{
+if(*str =='\0')
+break ;
+
+UART0_PutChar(*str++);
+}
+}
+
+2)UART1:
+CODE:
+#include<lpc214x.h>
+void UART1Init()
+{
+PINSEL0 |= 0x00050000;
+U1FCR=0x07;
+U1LCR= 0X83;
+U1DLL=0X62;
+U1DLM=0X00;
+U1LCR=0X03;
+}
+unsigned char UART1_PutChar(unsigned char ch)
+{
+if(ch =='\n')
+{
+while(!(U1LSR&0x20));
+U1THR = 0x0D;
+}
+while(!(U1LSR&0x20));
+return(U1THR = ch);
+}
+unsigned char UART1_GetChar(void)
+{
+while(!(U1LSR&0x01));
+return(U1RBR);
+}
+void UART1_Puts(unsigned char *str)
+{
+while(1)
+{
+if(*str =='\0')
+break ;
+UART1_PutChar(*str++);
+}
+}
+
+3)GPS final:
+CODE:
+#include <lpc214x.h>
+#include "UART0.c"
+#include "UART1.c"
+unsigned char msg_1[]="GPS program started UART initialised\n";
+unsigned char msg_2[]="\nInvalid GPS string";
+unsigned char lat_msg[]="\nLatitude= ";
+unsigned char long_msg[]="\nLongitude= ";
+unsigned char rcv_byte, count;
+unsigned char rcv_array[30];
+int main()
+{
+UART0Init();//UART0 is user interface
+UART1Init();//UART1-> GPS
+UART0_Puts(msg_1);
+while(1)
+{
+while(rcv_byte!='$')//for $
+{
+rcv_byte=UART1_GetChar();
+UART1_PutChar(rcv_byte);
+}
+rcv_byte=UART1_GetChar();//G (not checking)
+UART1_PutChar(rcv_byte);
+rcv_byte=UART1_GetChar();//P (not checking)
+UART1_PutChar(rcv_byte);
+rcv_byte=UART1_GetChar();//next character
+UART1_PutChar(rcv_byte);
+if(rcv_byte=='R')// if R
+{
+for(count=0;count<14;count++)
+{
+rcv_byte=UART1_GetChar();//UTC time
+
+UART1_PutChar(rcv_byte)
+}
+rcv_byte=UART1_GetChar();// a/v 19th char (A: valid ,V:invalid)
+UART1_PutChar(rcv_byte);
+if(rcv_byte=='V')// checking validity
+{
+UART0_Puts(msg_2);
+}
+else
+
+{
+rcv_byte=UART1_GetChar();
+UART1_PutChar(rcv_byte);
+for(count=0;count<24;count++)
+{
+rcv_byte=UART1_GetChar();
+rcv_array[count]=rcv_byte;
+UART1_PutChar(rcv_byte);
+}
+UART0_Puts(lat_msg);
+for(count=0;count<11;count++)
+{
+UART0_PutChar(rcv_array[count]);//latitude
+}
+UART0_Puts(long_msg);
+for(count=12;count<25;count++)
+{
+UART0_PutChar(rcv_array[count]);//longitude
+}
+}
+}
+}
+}
