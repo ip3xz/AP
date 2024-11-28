@@ -1,0 +1,36 @@
+2)UART1:
+CODE:
+#include<lpc214x.h>
+void UART1Init()
+{
+PINSEL0 |= 0x00050000;
+U1FCR=0x07;
+U1LCR= 0X83;
+U1DLL=0X62;
+U1DLM=0X00;
+U1LCR=0X03;
+}
+unsigned char UART1_PutChar(unsigned char ch)
+{
+if(ch =='\n')
+{
+while(!(U1LSR&0x20));
+U1THR = 0x0D;
+}
+while(!(U1LSR&0x20));
+return(U1THR = ch);
+}
+unsigned char UART1_GetChar(void)
+{
+while(!(U1LSR&0x01));
+return(U1RBR);
+}
+void UART1_Puts(unsigned char *str)
+{
+while(1)
+{
+if(*str =='\0')
+break ;
+UART1_PutChar(*str++);
+}
+}
