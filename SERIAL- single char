@@ -1,0 +1,31 @@
+(A).Serial Transmitter (Single character)
+Code :
+#include <lpc214x.h>
+int main()
+{
+PINSEL0 = 0x00000005;
+U0FCR=0x07;
+U0LCR= 0X83;
+U0DLL=0X62;
+U0DLM=0X00;
+U0LCR=0X03;
+U0THR='A';
+
+}
+Serial Reciever(Single character)
+Code :
+#include <lpc214x.h>
+int main()
+{
+PINSEL0 = 0x00000005;
+U0FCR=0x07;
+U0LCR= 0X83;
+U0DLL=0X62;
+U0DLM=0X00;
+U0LCR=0X03;
+while(!(U0LSR&0X01));
+unsigned int x=U0RBR;
+while(!(U0LSR&0X20));
+U0THR=x;
+return 0;
+}
