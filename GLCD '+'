@@ -1,0 +1,92 @@
+1) LCD ‘+’ pattern
+#include<lpc214x.h>
+#define LCD_data 0X00FF0000
+#define Greset 1<<24
+#define DI 1<<25
+#define CS1 1<<26
+#define CS2 1<<27
+#define EN 1<<10
+#define RW 1<<11
+#define Shift 16
+void delay(unsigned int time)//Enabling high to low pulse
+{
+int i,j;
+for(i=0;i<time;i++)
+{
+for(j=0;j<10;j++);
+}
+}
+void ldelay(unsigned int time)//For image display
+{
+int i,j;
+for(i=0;i<time;i++)
+{
+for(j=0;j<5000;j++);
+}
+}
+void LCD_EN()
+{
+IOSET0 = EN;
+delay(5);
+
+IOCLR0 = EN;
+delay(5);
+}
+void LCD_cmd(unsigned char ch)
+{
+IOCLR1 = LCD_data;
+IOCLR1 = DI;
+IOSET1 = ch<<Shift;
+LCD_EN();
+}
+void LCD_Data(unsigned char ch)
+{
+IOCLR1 = LCD_data;
+IOSET1 = DI;
+IOSET1 = ch<<Shift;
+LCD_EN();
+}
+void GLCD_Init()
+{
+int i;
+PINSEL0 =0X00000000;
+PINSEL2 =0X00000000;
+IODIR1 =LCD_data|Greset|DI|CS1|CS2;
+IODIR0=EN|RW;
+IOCLR0=EN|RW;
+IOCLR1=DI;
+IOSET1 = Greset|CS1|CS2;
+for(i=0;i<10;i++){
+LCD_cmd(0X3F);
+}
+LCD_cmd(0XB8);
+LCD_cmd(0X40);
+}
+int main()
+{
+int i,j,m,n;
+GLCD_Init();
+for(i=1;i<=6;i++)
+{
+IOSET1=CS1;
+IOCLR1=CS2;
+LCD_cmd(0xB8|i);
+for(j=25;j<=39;j++)
+
+{
+LCD_cmd(0x40|j);
+LCD_Data(0x00);
+}
+}
+for(m=3;m<=4;m++)
+{
+//IOSET1=CS1;
+//IOCLR1=CS2;
+LCD_cmd(0xB8|m);
+for(n=8;n<=56;n++)
+{
+LCD_cmd(0x40|n);
+LCD_Data(0x00);
+}
+}
+}
